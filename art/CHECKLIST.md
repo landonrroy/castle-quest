@@ -7,7 +7,7 @@ Previews (4×) are written to `art/preview/` for viewing.
 - [x] `kitchen-bg.jpg` generated
 - [x] palette extracted: `python tools/pixelize.py palette art/raw/kitchen-bg.jpg --size 640x360`
 - [x] background: `python tools/pixelize.py bg art/raw/kitchen-bg.jpg assets/kitchen/bg.png --preview`
-- [ ] look + palette approved by the user (palette is locked after this)
+- [x] look + palette approved by the user (palette is locked after this)
 
 ## Sprites (after Gate 1)
 | Done | Asset | Raw files (art/raw/) | Command |
