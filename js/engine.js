@@ -172,7 +172,10 @@
     node.addEventListener('error', () => { node.style.opacity = '0'; });
     return node;
   }
-  Castle.sprite = (src, o) => makeSprite(src, o, null);
+  Castle.sprite = (src, o) => {
+    if (o && (o.anims || o.blink)) console.warn('Castle.sprite: animated sprites should use api.sprite so timers are cleaned up');
+    return makeSprite(src, o, null);
+  };
   Castle.img = makeImg;
 
   function jewelSVG(kind, size) {

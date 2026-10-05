@@ -78,6 +78,7 @@
 .scene-kitchen .k-bg { position:absolute; left:0; top:0; pointer-events:none; }
 
 .scene-kitchen .k-pan { position:absolute; top:24px; cursor:pointer; transform-origin:50% 0; }
+.scene-kitchen .k-pan::before { content:''; position:absolute; inset:0 -10px; }
 .scene-kitchen .k-pan:hover { filter:brightness(1.12); }
 .scene-kitchen .k-pan.kit-swing { animation:kit-swing 1s steps(1,end); }
 @keyframes kit-swing { 12% { transform:rotate(20deg); } 32% { transform:rotate(-15deg); } 52% { transform:rotate(9deg); } 72% { transform:rotate(-5deg); } 88% { transform:rotate(2deg); } }
