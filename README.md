@@ -6,6 +6,8 @@ Rollo's crown. Pip the little dragon needs help finding them, and every room
 in the castle has a puzzle to solve.
 
 ## How to play
+**Play online:** https://landonrroy.github.io/castle-quest/
+
 Double-click `index.html` to open it in any modern browser (Chrome, Edge, Firefox or Safari).
 It needs no install, no server and no internet connection. With internet it also loads a
 nicer rounded font.
