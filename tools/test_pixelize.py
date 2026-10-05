@@ -104,4 +104,4 @@ def test_bg_command(tmp_path, monkeypatch):
     img = Image.open(out)
     assert img.size == (16, 9)
     pal = set(px.load_palette(pal_png))
-    assert all(c[:3] in pal for c in img.convert('RGBA').getdata())
+    assert all(c[:3] in pal for c in px.pixels(img.convert('RGBA')))

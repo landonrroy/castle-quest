@@ -35,6 +35,12 @@ def dist2(a, b):
     return (a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2 + (a[2] - b[2]) ** 2
 
 
+def pixels(img):
+    """All pixel values, flattened (Pillow 12 renamed getdata)."""
+    get = getattr(img, 'get_flattened_data', None)
+    return list(get() if get else img.getdata())
+
+
 def downsample(img, size):
     """Resample to exactly `size`. Each output pixel is the dominant color in
     the middle 60% of its source cell (AI pixel edges wobble, so they're
@@ -77,7 +83,7 @@ def extract_palette(img, n):
     """Median-cut the image down to at most n colors and return them."""
     q = img.convert('RGB').quantize(colors=n, method=Image.Quantize.MEDIANCUT)
     flat = q.getpalette()
-    used = sorted(set(q.getdata()))
+    used = sorted(set(pixels(q)))
     return list(dict.fromkeys(tuple(flat[i * 3:i * 3 + 3]) for i in used))
 
 
@@ -111,7 +117,7 @@ def write_palette(palette, png=None, js=None):
 
 
 def load_palette(path=None):
-    return list(dict.fromkeys(Image.open(path or PALETTE_PNG).convert('RGB').getdata()))
+    return list(dict.fromkeys(pixels(Image.open(path or PALETTE_PNG).convert('RGB'))))
 
 
 def require_palette():
