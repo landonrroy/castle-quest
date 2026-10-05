@@ -88,6 +88,96 @@
   }
   Castle.util = { el, svg, rand, pick, shuffle };
 
+  /* ------------------------------------------------------------------
+     Pixel art: sprite sheets (one row of equal frames) and still images,
+     drawn at 2x so 1 art pixel = 2 stage pixels. Frames are swapped, never
+     smoothly scaled, so the pixels stay crisp.
+     ------------------------------------------------------------------ */
+  const PX = 2;
+  function makeSprite(src, o, track) {
+    o = o || {};
+    const fw = o.frame[0], fh = o.frame[1], sc = o.scale || PX;
+    const anims = {};
+    let maxF = 0;
+    Object.keys(o.anims || {}).forEach(k => {
+      const a = o.anims[k];
+      anims[k] = Array.isArray(a) ? { frames: a, fps: o.fps || 6 } : { frames: a.frames, fps: a.fps || o.fps || 6 };
+      maxF = Math.max(maxF, ...anims[k].frames);
+    });
+    const cols = o.cols || maxF + 1;
+    const node = el('div', { class: 'sprite' + (o.class ? ' ' + o.class : '') });
+    Object.assign(node.style, {
+      width: fw * sc + 'px', height: fh * sc + 'px',
+      backgroundImage: `url("${src}")`,
+      backgroundSize: `${cols * fw * sc}px ${fh * sc}px`,
+    });
+    if (o.x != null) Object.assign(node.style, { position: 'absolute', left: o.x + 'px', top: o.y + 'px' });
+
+    let timer = null, blinkTimer = null, current = null, done = null, then = null, dead = false;
+    function show(f) { s.shown = f; node.style.backgroundPosition = `${-f * fw * sc}px 0px`; }
+    function halt() {
+      if (timer) { clearInterval(timer); timer = null; }
+      then = null;
+      if (done) { const d = done; done = null; d(); }
+    }
+    const s = {
+      el: node,
+      shown: 0,
+      get anim() { return current; },
+      frame(f) { if (dead) return s; halt(); current = null; show(f); return s; },
+      play(name, po) {
+        if (dead) return Promise.resolve();
+        po = po || {};
+        const a = anims[name];
+        if (!a) { console.warn('sprite: no animation', name); return Promise.resolve(); }
+        if (name === current && timer && !po.once && !po.fps) return Promise.resolve();
+        halt();
+        current = name;
+        let i = 0;
+        show(a.frames[0]);
+        if (!po.once && a.frames.length < 2) return Promise.resolve();
+        const p = po.once ? new Promise(r => { done = r; }) : Promise.resolve();
+        then = po.once ? po.then || null : null;
+        timer = setInterval(() => {
+          i++;
+          if (i < a.frames.length) { show(a.frames[i]); return; }
+          if (!po.once) { i = 0; show(a.frames[0]); return; }
+          const next = then;
+          halt();
+          if (next) s.play(next);
+        }, 1000 / (po.fps || a.fps));
+        return p;
+      },
+      stop() { halt(); },
+      destroy() { dead = true; halt(); clearTimeout(blinkTimer); },
+    };
+    function blinkLater() {
+      blinkTimer = setTimeout(() => {
+        if (dead) return;
+        if (current === 'idle') s.play(o.blink, { once: true, then: 'idle' });
+        blinkLater();
+      }, 3000 + Math.random() * 3000);
+    }
+    if (track) track(s.destroy);
+    if (anims.idle) s.play('idle'); else show(0);
+    if (o.blink && anims[o.blink]) blinkLater();
+    return s;
+  }
+  function makeImg(src, o) {
+    o = o || {};
+    const sc = o.scale || PX;
+    const node = el('img', { src, alt: '', draggable: 'false', class: 'px' + (o.class ? ' ' + o.class : '') });
+    Object.assign(node.style, { width: o.w * sc + 'px', height: o.h * sc + 'px' });
+    if (o.x != null) Object.assign(node.style, { position: 'absolute', left: o.x + 'px', top: o.y + 'px' });
+    node.addEventListener('error', () => { node.style.opacity = '0'; });
+    return node;
+  }
+  Castle.sprite = (src, o) => {
+    if (o && (o.anims || o.blink)) console.warn('Castle.sprite: animated sprites should use api.sprite so timers are cleaned up');
+    return makeSprite(src, o, null);
+  };
+  Castle.img = makeImg;
+
   function jewelSVG(kind, size) {
     const j = JEWELS[kind] || JEWELS.ruby;
     size = size || 60;
@@ -332,7 +422,7 @@
 
   let sayToken = 0, lastLine = null, sayResolve = null, bubbleTimer = null;
   function finishSpeech() {
-    if (guideEl) guideEl.classList.remove('talking');
+    setPipTalking(false);
     if (sayResolve) { const r = sayResolve; sayResolve = null; r(); }
   }
   function say(text, opts) {
@@ -342,7 +432,7 @@
     if (synth) synth.cancel();
     lastLine = { text, opts };
     showBubble(opts.caption || text, opts.who);
-    guideEl.classList.toggle('talking', !opts.who || opts.who === 'Pip');
+    setPipTalking(!opts.who || opts.who === 'Pip');
     return new Promise(resolve => {
       sayResolve = resolve;
       const fallbackMs = Math.max(1400, text.length * 68) + 400;
@@ -577,32 +667,12 @@
   }
 
   /* Pip the dragon (guide) */
-  const PIP_SVG = `
-  <svg viewBox="0 0 200 200" width="170" height="170" class="pip">
-    <g class="pip-body">
-      <path class="pip-wing" d="M118 92 C150 50 186 62 190 78 C172 76 168 92 176 104 C160 98 150 112 156 124 C140 116 128 118 120 120 Z" fill="#ffc928" stroke="#3a2a1a" stroke-width="5" stroke-linejoin="round"/>
-      <path d="M60 170 C40 176 20 168 14 150 C26 158 40 156 52 148" fill="#3fb950" stroke="#3a2a1a" stroke-width="5" stroke-linejoin="round"/>
-      <ellipse cx="96" cy="140" rx="48" ry="44" fill="#3fb950" stroke="#3a2a1a" stroke-width="5"/>
-      <ellipse cx="96" cy="150" rx="28" ry="28" fill="#c9f7a8" stroke="#3a2a1a" stroke-width="4"/>
-      <path d="M80 136h32M78 150h36M82 164h28" stroke="#8fd16b" stroke-width="4" stroke-linecap="round"/>
-      <ellipse cx="70" cy="182" rx="16" ry="9" fill="#3fb950" stroke="#3a2a1a" stroke-width="5"/>
-      <ellipse cx="122" cy="182" rx="16" ry="9" fill="#3fb950" stroke="#3a2a1a" stroke-width="5"/>
-      <g class="pip-head">
-        <path d="M64 46 L58 18 L78 38 Z M110 40 L122 14 L126 44 Z" fill="#ff8c2b" stroke="#3a2a1a" stroke-width="4" stroke-linejoin="round"/>
-        <ellipse cx="94" cy="72" rx="50" ry="40" fill="#3fb950" stroke="#3a2a1a" stroke-width="5"/>
-        <ellipse cx="128" cy="86" rx="26" ry="18" fill="#5ccf6a" stroke="#3a2a1a" stroke-width="4"/>
-        <circle cx="136" cy="80" r="3" fill="#3a2a1a"/><circle cx="146" cy="84" r="3" fill="#3a2a1a"/>
-        <g class="pip-eyes">
-          <ellipse cx="76" cy="64" rx="13" ry="15" fill="#fff" stroke="#3a2a1a" stroke-width="4"/>
-          <ellipse cx="108" cy="60" rx="13" ry="15" fill="#fff" stroke="#3a2a1a" stroke-width="4"/>
-          <circle cx="80" cy="66" r="6" fill="#3a2a1a"/><circle cx="112" cy="62" r="6" fill="#3a2a1a"/>
-          <circle cx="82" cy="63" r="2" fill="#fff"/><circle cx="114" cy="59" r="2" fill="#fff"/>
-        </g>
-        <ellipse cx="60" cy="86" rx="8" ry="5" fill="#ff8fb0" opacity=".8"/>
-        <path class="pip-mouth" d="M104 96 Q118 106 132 98" fill="#7a1f2b" stroke="#3a2a1a" stroke-width="4" stroke-linecap="round"/>
-      </g>
-    </g>
-  </svg>`;
+  let pip = null;
+  function setPipTalking(on) {
+    if (!guideEl) return;
+    guideEl.classList.toggle('talking', on);
+    if (pip) pip.play(on ? 'talk' : 'idle');
+  }
 
   /* ------------------------------------------------------------------
      Scene manager + room API
@@ -650,6 +720,8 @@
       sparkleAt(node) { if (ctx.alive) { const r = stageRect(node); sparkles(r.cx, r.cy, 22); } },
       toStage, stageRect, hitTest,
       draggable(node, opts) { return makeDraggable(node, opts, track); },
+      sprite(src, o) { return makeSprite(src, o, track); },
+      img: makeImg,
       praise() {
         return api.say(pick(['Great job!', 'Hooray!', 'You did it!', 'Wonderful!', 'Super!', 'Way to go!', 'Fantastic!', 'Brilliant!']));
       },
@@ -745,7 +817,12 @@
     fxCtx = fxCanvas.getContext('2d');
     hudEl = el('div', { id: 'hud' });
     guideEl = el('div', { id: 'guide', title: 'Tap Pip to hear that again' });
-    guideEl.innerHTML = PIP_SVG;
+    pip = makeSprite('assets/common/pip.png', {
+      frame: [84, 84],
+      anims: { idle: { frames: [0, 1], fps: 2 }, blink: { frames: [2], fps: 6 }, talk: { frames: [3, 0], fps: 7 } },
+      blink: 'blink',
+    }, null);
+    guideEl.appendChild(pip.el);
     bubbleEl = el('div', { id: 'bubble' });
     bubbleWho = el('div', { class: 'who' });
     bubbleText = el('div', { class: 'text' });

@@ -6,6 +6,12 @@
       "runtimeExecutable": "python",
       "runtimeArgs": ["-m", "http.server", "8642", "--directory", "C:/Users/lando/OneDrive/Documents/Projects/FisherPriceGame"],
       "port": 8642
+    },
+    {
+      "name": "castle-pixel",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "http.server", "8650"],
+      "port": 8650
     }
   ]
 }
