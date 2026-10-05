@@ -113,7 +113,7 @@
     });
     if (o.x != null) Object.assign(node.style, { position: 'absolute', left: o.x + 'px', top: o.y + 'px' });
 
-    let timer = null, blinkTimer = null, current = null, done = null, then = null;
+    let timer = null, blinkTimer = null, current = null, done = null, then = null, dead = false;
     function show(f) { s.shown = f; node.style.backgroundPosition = `${-f * fw * sc}px 0px`; }
     function halt() {
       if (timer) { clearInterval(timer); timer = null; }
@@ -124,8 +124,9 @@
       el: node,
       shown: 0,
       get anim() { return current; },
-      frame(f) { halt(); current = null; show(f); return s; },
+      frame(f) { if (dead) return s; halt(); current = null; show(f); return s; },
       play(name, po) {
+        if (dead) return Promise.resolve();
         po = po || {};
         const a = anims[name];
         if (!a) { console.warn('sprite: no animation', name); return Promise.resolve(); }
@@ -148,10 +149,11 @@
         return p;
       },
       stop() { halt(); },
-      destroy() { halt(); clearTimeout(blinkTimer); },
+      destroy() { dead = true; halt(); clearTimeout(blinkTimer); },
     };
     function blinkLater() {
       blinkTimer = setTimeout(() => {
+        if (dead) return;
         if (current === 'idle') s.play(o.blink, { once: true, then: 'idle' });
         blinkLater();
       }, 3000 + Math.random() * 3000);
@@ -167,7 +169,7 @@
     const node = el('img', { src, alt: '', draggable: 'false', class: 'px' + (o.class ? ' ' + o.class : '') });
     Object.assign(node.style, { width: o.w * sc + 'px', height: o.h * sc + 'px' });
     if (o.x != null) Object.assign(node.style, { position: 'absolute', left: o.x + 'px', top: o.y + 'px' });
-    node.addEventListener('error', () => { node.style.visibility = 'hidden'; });
+    node.addEventListener('error', () => { node.style.opacity = '0'; });
     return node;
   }
   Castle.sprite = (src, o) => makeSprite(src, o, null);
