@@ -1,7 +1,7 @@
 # Castle Quest — Room API contract
 
 Every puzzle room is ONE file: `js/rooms/<id>.js`. Plain script (no ES modules,
-no imports, no build step, no external assets). The game must work by
+no imports, no build step, no network assets (local images under `assets/` are fine)). The game must work by
 double-clicking `index.html` (file://). Wrap your file in an IIFE.
 
 ```js
@@ -36,6 +36,8 @@ double-clicking `index.html` (file://). Wrap your file in an IIFE.
   room is left). Prefix all selectors with `.scene-<id>` (root has class `scene scene-<id>`).
 
 ## Art style (match the 1996 Fisher-Price CD-ROM feel)
+Rooms are being converted to hi-bit pixel art. See `art/STYLE.md` and the pipeline in `art/CHECKLIST.md`. The Kitchen is the reference room. Rooms not yet converted keep the SVG style below.
+
 Bright, chunky, friendly. Flat saturated colors, **thick dark outlines**
 (`stroke="#3a2a1a"` width 4–6, round joins), rounded shapes, simple shading blobs,
 happy faces with big eyes. Draw everything with inline SVG (or CSS). Fill the whole
@@ -57,6 +59,8 @@ love poking things. No emoji as primary art (OK as small accents).
 | `api.onCleanup(fn)` | Register extra cleanup. |
 | `api.el(tag, attrs, children)` | DOM helper. attrs: `class`, `style` (object), `html`, `text`, `onclick`... |
 | `api.svg(markup)` → Element | Parse an SVG/HTML string into one element. |
+| `api.sprite(src, {frame:[w,h], anims, fps, cols, scale, class, x, y, blink})` → Sprite | Pixel sprite sheet (one row of equal frames, art px; shown at 2×). `anims` maps names to frame lists or `{frames, fps}`; `idle` auto-plays. Sprite: `el`, `anim`, `frame(i)`, `play(name, {once, then, fps})` → Promise, `stop()`. Timers auto-clean. Use `Castle.sprite(src, opts).frame(i)` for static frames that don't need room cleanup. |
+| `api.img(src, {w, h, x, y, class})` | Still pixel image at 2×. |
 | `api.rand(n) / api.pick(arr) / api.shuffle(arr)` | Random helpers (shuffle returns a copy). |
 | `api.draggable(el, {onStart, onMove, onDrop, enabled})` → handle | Pointer drag (mouse+touch). `el` should be absolutely positioned. `onDrop(d)` gets `{x, y, el, back(), snapTo(targetEl), stay(), lock()}` — x/y is the drop point in stage px. Call `d.back()` to fly home, `d.snapTo(target)` to center on a target, `d.lock()` to make it un-draggable. Handle: `disable() enable() reset()`. |
 | `api.hitTest(x, y, el, pad=20)` | Is stage point inside el's box? |

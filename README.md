@@ -45,3 +45,6 @@ top-right corner. Progress is saved in the browser's local storage.
 - `js/scenes.js` has the title screen, the castle map and the throne-room finale.
 - `js/rooms/*.js` has one file per puzzle room. See `ROOM_API.md` for the contract.
 - `css/style.css` holds the shared styles.
+- `assets/` holds the pixel art PNGs and `assets/palette.png` (the locked game palette).
+- `art/` has the style guide, Gemini prompts, asset checklist and raw generations.
+- `tools/pixelize.py` turns raw Gemini images into true pixel art (`pip install -r tools/requirements.txt`, tests: `python -m pytest tools`).
