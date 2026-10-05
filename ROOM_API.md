@@ -1,7 +1,7 @@
 # Castle Quest — Room API contract
 
 Every puzzle room is ONE file: `js/rooms/<id>.js`. Plain script (no ES modules,
-no imports, no build step, no network assets (local images under `assets/` are fine)). The game must work by
+no imports, no build step, no network assets; local images under `assets/` are fine). The game must work by
 double-clicking `index.html` (file://). Wrap your file in an IIFE.
 
 ```js
