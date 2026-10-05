@@ -419,7 +419,7 @@
 
   let sayToken = 0, lastLine = null, sayResolve = null, bubbleTimer = null;
   function finishSpeech() {
-    if (guideEl) guideEl.classList.remove('talking');
+    setPipTalking(false);
     if (sayResolve) { const r = sayResolve; sayResolve = null; r(); }
   }
   function say(text, opts) {
@@ -429,7 +429,7 @@
     if (synth) synth.cancel();
     lastLine = { text, opts };
     showBubble(opts.caption || text, opts.who);
-    guideEl.classList.toggle('talking', !opts.who || opts.who === 'Pip');
+    setPipTalking(!opts.who || opts.who === 'Pip');
     return new Promise(resolve => {
       sayResolve = resolve;
       const fallbackMs = Math.max(1400, text.length * 68) + 400;
@@ -664,32 +664,12 @@
   }
 
   /* Pip the dragon (guide) */
-  const PIP_SVG = `
-  <svg viewBox="0 0 200 200" width="170" height="170" class="pip">
-    <g class="pip-body">
-      <path class="pip-wing" d="M118 92 C150 50 186 62 190 78 C172 76 168 92 176 104 C160 98 150 112 156 124 C140 116 128 118 120 120 Z" fill="#ffc928" stroke="#3a2a1a" stroke-width="5" stroke-linejoin="round"/>
-      <path d="M60 170 C40 176 20 168 14 150 C26 158 40 156 52 148" fill="#3fb950" stroke="#3a2a1a" stroke-width="5" stroke-linejoin="round"/>
-      <ellipse cx="96" cy="140" rx="48" ry="44" fill="#3fb950" stroke="#3a2a1a" stroke-width="5"/>
-      <ellipse cx="96" cy="150" rx="28" ry="28" fill="#c9f7a8" stroke="#3a2a1a" stroke-width="4"/>
-      <path d="M80 136h32M78 150h36M82 164h28" stroke="#8fd16b" stroke-width="4" stroke-linecap="round"/>
-      <ellipse cx="70" cy="182" rx="16" ry="9" fill="#3fb950" stroke="#3a2a1a" stroke-width="5"/>
-      <ellipse cx="122" cy="182" rx="16" ry="9" fill="#3fb950" stroke="#3a2a1a" stroke-width="5"/>
-      <g class="pip-head">
-        <path d="M64 46 L58 18 L78 38 Z M110 40 L122 14 L126 44 Z" fill="#ff8c2b" stroke="#3a2a1a" stroke-width="4" stroke-linejoin="round"/>
-        <ellipse cx="94" cy="72" rx="50" ry="40" fill="#3fb950" stroke="#3a2a1a" stroke-width="5"/>
-        <ellipse cx="128" cy="86" rx="26" ry="18" fill="#5ccf6a" stroke="#3a2a1a" stroke-width="4"/>
-        <circle cx="136" cy="80" r="3" fill="#3a2a1a"/><circle cx="146" cy="84" r="3" fill="#3a2a1a"/>
-        <g class="pip-eyes">
-          <ellipse cx="76" cy="64" rx="13" ry="15" fill="#fff" stroke="#3a2a1a" stroke-width="4"/>
-          <ellipse cx="108" cy="60" rx="13" ry="15" fill="#fff" stroke="#3a2a1a" stroke-width="4"/>
-          <circle cx="80" cy="66" r="6" fill="#3a2a1a"/><circle cx="112" cy="62" r="6" fill="#3a2a1a"/>
-          <circle cx="82" cy="63" r="2" fill="#fff"/><circle cx="114" cy="59" r="2" fill="#fff"/>
-        </g>
-        <ellipse cx="60" cy="86" rx="8" ry="5" fill="#ff8fb0" opacity=".8"/>
-        <path class="pip-mouth" d="M104 96 Q118 106 132 98" fill="#7a1f2b" stroke="#3a2a1a" stroke-width="4" stroke-linecap="round"/>
-      </g>
-    </g>
-  </svg>`;
+  let pip = null;
+  function setPipTalking(on) {
+    if (!guideEl) return;
+    guideEl.classList.toggle('talking', on);
+    if (pip) pip.play(on ? 'talk' : 'idle');
+  }
 
   /* ------------------------------------------------------------------
      Scene manager + room API
@@ -834,7 +814,12 @@
     fxCtx = fxCanvas.getContext('2d');
     hudEl = el('div', { id: 'hud' });
     guideEl = el('div', { id: 'guide', title: 'Tap Pip to hear that again' });
-    guideEl.innerHTML = PIP_SVG;
+    pip = makeSprite('assets/common/pip.png', {
+      frame: [84, 84],
+      anims: { idle: { frames: [0, 1], fps: 2 }, blink: { frames: [2], fps: 6 }, talk: { frames: [3, 0], fps: 7 } },
+      blink: 'blink',
+    }, null);
+    guideEl.appendChild(pip.el);
     bubbleEl = el('div', { id: 'bubble' });
     bubbleWho = el('div', { class: 'who' });
     bubbleText = el('div', { class: 'text' });

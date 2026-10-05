@@ -89,16 +89,9 @@ html, body {
 #guide.away { transform: translateY(200px); }
 #guide.hop { animation: hop .5s; }
 @keyframes hop { 40% { transform: translateY(-30px); } }
-#guide .pip-body { animation: pip-breathe 3s ease-in-out infinite; transform-origin: 96px 190px; }
-@keyframes pip-breathe { 50% { transform: scale(1.03, .97); } }
-#guide .pip-wing { animation: pip-wing 1.6s ease-in-out infinite; transform-origin: 120px 110px; }
-@keyframes pip-wing { 50% { transform: rotate(-12deg); } }
-#guide .pip-eyes { animation: blink 4s infinite; transform-origin: 94px 62px; }
 @keyframes blink { 0%, 94%, 100% { transform: scaleY(1); } 97% { transform: scaleY(.1); } }
-#guide.talking .pip-mouth { animation: talk .22s infinite alternate; transform-origin: 118px 98px; }
 @keyframes talk { to { transform: scaleY(2.2); } }
-#guide.talking .pip-head { animation: nod .5s ease-in-out infinite alternate; transform-origin: 94px 110px; }
-@keyframes nod { to { transform: rotate(-3deg); } }
+#guide .sprite { position: absolute; left: 1px; top: 2px; }
 
 #bubble {
   position: absolute; left: 180px; bottom: 26px; max-width: 700px; min-width: 200px;
