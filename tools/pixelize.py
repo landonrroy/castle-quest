@@ -25,6 +25,7 @@ PALETTE_JS = ROOT / 'js' / 'palette.js'
 PREVIEW_DIR = ROOT / 'art' / 'preview'
 MAGENTA = (255, 0, 255)
 CYAN = (0, 255, 255)
+FRINGE_TOL = 150  # max distance from magenta for an edge pixel to count as fringe
 
 # Accent ramps added to every palette, so characters and props keep colors
 # the background room may not contain (greens, blues, yellows, fire, purple, pink).
@@ -128,7 +129,7 @@ def key_out(img, key=MAGENTA, tol=90, hole=False):
     """Make the background transparent: flood-fill from the border through
     pixels within `tol` of `key`. With hole=True also clear every pixel near
     cyan (the soup cutout). Finally clear opaque pixels on the cut edge that
-    are still pinkish (blended fringe)."""
+    are still magenta-ish (blended fringe: near the key and red/blue well above green)."""
     img = img.convert('RGBA')
     w, h = img.size
     p = img.load()
@@ -153,9 +154,10 @@ def key_out(img, key=MAGENTA, tol=90, hole=False):
             for x in range(w):
                 if p[x, y][3] and dist2(p[x, y], CYAN) <= t2:
                     p[x, y] = (0, 0, 0, 0)
-    f2 = (tol * 2) ** 2
+    f2 = FRINGE_TOL ** 2
     fringe = [(x, y) for y in range(h) for x in range(w)
               if p[x, y][3] and dist2(p[x, y], key) <= f2
+              and p[x, y][0] - p[x, y][1] >= 60 and p[x, y][2] - p[x, y][1] >= 60
               and any(0 <= x + dx < w and 0 <= y + dy < h and p[x + dx, y + dy][3] == 0
                       for dx, dy in NEIGHBOURS)]
     for x, y in fringe:
@@ -234,7 +236,7 @@ def load_palette(path=None):
 
 def require_palette():
     if not Path(PALETTE_PNG).exists():
-        raise SystemExit('No palette yet: run "python tools/pixelize.py palette art/raw/kitchen-bg.png" first.')
+        raise SystemExit('No palette yet: run "python tools/pixelize.py palette art/raw/kitchen-bg.jpg" first.')
     return load_palette(PALETTE_PNG)
 
 
@@ -248,6 +250,18 @@ def save(img, out, preview):
         pv = PREVIEW_DIR / out.name
         img.resize((img.width * 4, img.height * 4), Image.NEAREST).save(pv)
         print(f'preview {pv}')
+
+
+def scale_arg(s):
+    if s == 'auto':
+        return s
+    try:
+        v = float(s)
+    except ValueError:
+        v = 0
+    if not v > 0:
+        raise argparse.ArgumentTypeError(f"invalid scale {s!r}: use 'auto' or a positive number")
+    return v
 
 
 def main(argv=None):
@@ -266,7 +280,7 @@ def main(argv=None):
     s.add_argument('out')
     s.add_argument('raws', nargs='+')
     s.add_argument('--cell', required=True)
-    s.add_argument('--scale', default='auto')
+    s.add_argument('--scale', type=scale_arg, default='auto')
     s.add_argument('--each', action='store_true')
     s.add_argument('--hole', action='store_true')
     s.add_argument('--tol', type=int, default=90)
@@ -275,6 +289,8 @@ def main(argv=None):
 
     if a.cmd == 'palette':
         pal = list(dict.fromkeys(extract_palette(downsample(Image.open(a.raw), parse_size(a.size)), a.colors) + [hex_rgb(h) for h in ACCENTS]))
+        if len(pal) < a.colors:
+            print(f'warning: only {len(pal)} colors found (asked for {a.colors})')
         write_palette(pal, PALETTE_PNG, PALETTE_JS)
         print(f'wrote {PALETTE_PNG} and {PALETTE_JS} ({len(pal)} colors)')
     elif a.cmd == 'bg':

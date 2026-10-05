@@ -137,6 +137,22 @@ def test_key_out_strips_pink_fringe():
     assert out.getpixel((3, 5))[3] == 255
 
 
+def test_key_out_keeps_white_edge_pixels():
+    img = body_on_magenta(body=(3, 9))
+    img.putpixel((2, 5), (255, 255, 255))  # white highlight on the cut edge
+    out = px.key_out(img, tol=120)
+    assert out.getpixel((2, 5)) == (255, 255, 255, 255)
+
+
+def test_key_out_keeps_warm_edge_pixels():
+    # peach/orange edge pixels are within 2*tol of magenta but not pinkish
+    for c in [(255, 200, 150), (255, 230, 120)]:
+        img = body_on_magenta(body=(3, 9))
+        img.putpixel((2, 5), c)
+        out = px.key_out(img, tol=120)
+        assert out.getpixel((2, 5)) == (*c, 255)
+
+
 def test_hole_clears_cyan_and_reports_box():
     img = body_on_magenta(body=(2, 11))
     d = img.load()
