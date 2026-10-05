@@ -104,6 +104,101 @@ def snap(img, palette):
     return img
 
 
+NEIGHBOURS = ((1, 0), (-1, 0), (0, 1), (0, -1))
+
+
+def key_out(img, key=MAGENTA, tol=90, hole=False):
+    """Make the background transparent: flood-fill from the border through
+    pixels within `tol` of `key`. With hole=True also clear every pixel near
+    cyan (the soup cutout). Finally clear opaque pixels on the cut edge that
+    are still pinkish (blended fringe)."""
+    img = img.convert('RGBA')
+    w, h = img.size
+    p = img.load()
+    t2 = tol * tol
+    seen = bytearray(w * h)
+    q = deque([(x, 0) for x in range(w)] + [(x, h - 1) for x in range(w)]
+              + [(0, y) for y in range(h)] + [(w - 1, y) for y in range(h)])
+    while q:
+        x, y = q.popleft()
+        if seen[y * w + x]:
+            continue
+        seen[y * w + x] = 1
+        if dist2(p[x, y], key) > t2:
+            continue
+        p[x, y] = (0, 0, 0, 0)
+        for dx, dy in NEIGHBOURS:
+            nx, ny = x + dx, y + dy
+            if 0 <= nx < w and 0 <= ny < h and not seen[ny * w + nx]:
+                q.append((nx, ny))
+    if hole:
+        for y in range(h):
+            for x in range(w):
+                if p[x, y][3] and dist2(p[x, y], CYAN) <= t2:
+                    p[x, y] = (0, 0, 0, 0)
+    f2 = (tol * 2) ** 2
+    fringe = [(x, y) for y in range(h) for x in range(w)
+              if p[x, y][3] and dist2(p[x, y], key) <= f2
+              and any(0 <= x + dx < w and 0 <= y + dy < h and p[x + dx, y + dy][3] == 0
+                      for dx, dy in NEIGHBOURS)]
+    for x, y in fringe:
+        p[x, y] = (0, 0, 0, 0)
+    return img
+
+
+def color_bbox(img, color, tol=90):
+    """Bounding box (x0, y0, x1, y1) of pixels within tol of color, or None."""
+    t2 = tol * tol
+    mask = Image.new('L', img.size)
+    mask.putdata([255 if dist2(c, color) <= t2 else 0 for c in pixels(img.convert('RGB'))])
+    return mask.getbbox()
+
+
+def content_bbox(img, key=MAGENTA, tol=90):
+    """Bounding box of everything that isn't background (full resolution)."""
+    t2 = tol * tol
+    mask = Image.new('L', img.size)
+    mask.putdata([0 if dist2(c, key) <= t2 else 255 for c in pixels(img.convert('RGB'))])
+    return mask.getbbox()
+
+
+def make_sprite(raws, cell, scale='auto', hole=False, each=False, tol=90, palette=None):
+    """Build a one-row sprite sheet, one frame per raw image.
+
+    Frames share one crop box (the union of their content) so animation
+    frames stay aligned; each=True fits every frame on its own instead (for
+    sheets of different objects). Each frame is bottom-centred in its cell.
+    scale = source pixels per art pixel; 'auto' picks the smallest scale that
+    fits the cell with a 1px margin each side."""
+    cw, ch = cell
+    imgs = [Image.open(r).convert('RGB') for r in raws]
+    boxes = [content_bbox(im, tol=tol) for im in imgs]
+    if any(b is None for b in boxes):
+        raise SystemExit('A frame is empty (all background): check the image and --tol.')
+    if not each:
+        u = (min(b[0] for b in boxes), min(b[1] for b in boxes),
+             max(b[2] for b in boxes), max(b[3] for b in boxes))
+        boxes = [u] * len(imgs)
+    sheet = Image.new('RGBA', (cw * len(imgs), ch), (0, 0, 0, 0))
+    holes, used = [], None
+    for i, (im, box) in enumerate(zip(imgs, boxes)):
+        bw, bh = box[2] - box[0], box[3] - box[1]
+        s = float(scale) if scale not in (None, 'auto') else max(bw / (cw - 2), bh / (ch - 2))
+        w, h = max(1, round(bw / s)), max(1, round(bh / s))
+        if w > cw or h > ch:
+            raise SystemExit(f'{raws[i]}: {w}x{h} art px is bigger than the {cw}x{ch} cell; use a larger --scale.')
+        small = downsample(im.crop(box), (w, h))
+        hb = color_bbox(small, CYAN, tol) if hole else None
+        cut = key_out(small, tol=tol, hole=hole)
+        if palette:
+            cut = snap(cut, palette)
+        ox, oy = (cw - w) // 2, ch - h
+        sheet.paste(cut, (i * cw + ox, oy))
+        holes.append(None if hb is None else (hb[0] + ox, hb[1] + oy, hb[2] + ox, hb[3] + oy))
+        used = s
+    return sheet, used, holes
+
+
 def write_palette(palette, png=None, js=None):
     png = Path(png or PALETTE_PNG)
     js = Path(js or PALETTE_JS)
@@ -150,6 +245,15 @@ def main(argv=None):
     b.add_argument('out')
     b.add_argument('--size', default='640x360')
     b.add_argument('--preview', action='store_true')
+    s = sub.add_parser('sprite')
+    s.add_argument('out')
+    s.add_argument('raws', nargs='+')
+    s.add_argument('--cell', required=True)
+    s.add_argument('--scale', default='auto')
+    s.add_argument('--each', action='store_true')
+    s.add_argument('--hole', action='store_true')
+    s.add_argument('--tol', type=int, default=90)
+    s.add_argument('--preview', action='store_true')
     a = ap.parse_args(argv)
 
     if a.cmd == 'palette':
@@ -159,6 +263,13 @@ def main(argv=None):
     elif a.cmd == 'bg':
         img = snap(downsample(Image.open(a.raw), parse_size(a.size)), require_palette())
         save(img.convert('RGB'), a.out, a.preview)
+    elif a.cmd == 'sprite':
+        sheet, sc, holes = make_sprite(a.raws, parse_size(a.cell), a.scale, a.hole, a.each, a.tol, require_palette())
+        save(sheet, a.out, a.preview)
+        print(f'scale {sc:.2f} source px per art px')
+        for i, hb in enumerate(holes):
+            if hb:
+                print(f'frame {i}: soup hole x={hb[0]} y={hb[1]} w={hb[2] - hb[0]} h={hb[3] - hb[1]} (art px)')
 
 
 if __name__ == '__main__':

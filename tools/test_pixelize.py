@@ -105,3 +105,114 @@ def test_bg_command(tmp_path, monkeypatch):
     assert img.size == (16, 9)
     pal = set(px.load_palette(pal_png))
     assert all(c[:3] in pal for c in px.pixels(img.convert('RGBA')))
+
+
+def body_on_magenta(size=12, body=(2, 10), color=(20, 20, 30)):
+    img = Image.new('RGB', (size, size), px.MAGENTA)
+    d = img.load()
+    for y in range(*body):
+        for x in range(*body):
+            d[x, y] = color
+    return img
+
+
+def test_key_out_removes_only_border_connected_background():
+    img = body_on_magenta()
+    d = img.load()
+    for y in range(5, 7):
+        for x in range(5, 7):
+            d[x, y] = px.MAGENTA  # enclosed magenta, not background
+    out = px.key_out(img)
+    assert out.getpixel((0, 0))[3] == 0
+    assert out.getpixel((11, 11))[3] == 0
+    assert out.getpixel((2, 2)) == (20, 20, 30, 255)
+    assert out.getpixel((5, 5)) == (*px.MAGENTA, 255)
+
+
+def test_key_out_strips_pink_fringe():
+    img = body_on_magenta(body=(3, 9))
+    img.putpixel((2, 5), (200, 80, 200))  # blended edge pixel, outside tol
+    out = px.key_out(img)
+    assert out.getpixel((2, 5))[3] == 0
+    assert out.getpixel((3, 5))[3] == 255
+
+
+def test_hole_clears_cyan_and_reports_box():
+    img = body_on_magenta(body=(2, 11))
+    d = img.load()
+    for y in range(4, 7):
+        for x in range(4, 7):
+            d[x, y] = px.CYAN
+    assert px.color_bbox(img, px.CYAN) == (4, 4, 7, 7)
+    out = px.key_out(img, hole=True)
+    assert out.getpixel((5, 5))[3] == 0
+    assert out.getpixel((3, 5))[3] == 255
+
+
+def block_on_magenta(tmp_path, name, color, at=(100, 60), cells=(5, 5), block=40, size=(400, 400)):
+    grid = [[color] * cells[0] for _ in range(cells[1])]
+    img = Image.new('RGB', size, px.MAGENTA)
+    img.paste(fake_pixel_art(grid, block, jitter=0, noise=0), at)
+    p = tmp_path / name
+    img.save(p)
+    return p
+
+
+def opaque_box(sheet, frame, cell):
+    cw, ch = cell
+    return sheet.crop((frame * cw, 0, frame * cw + cw, ch)).getchannel('A').getbbox()
+
+
+def test_make_sprite_bottom_centres_frames(tmp_path):
+    raw = block_on_magenta(tmp_path, 'a.png', PAL[2])
+    sheet, scale, holes = px.make_sprite([raw, raw], (8, 8), scale='40', palette=PAL)
+    assert sheet.size == (16, 8)
+    assert scale == 40
+    assert holes == [None, None]
+    for f in (0, 1):
+        assert opaque_box(sheet, f, (8, 8)) == (1, 3, 6, 8)
+    assert sheet.getpixel((10, 5)) == (*PAL[2], 255)
+
+
+def test_make_sprite_auto_scale_fits_cell(tmp_path):
+    raw = block_on_magenta(tmp_path, 'a.png', PAL[3], cells=(5, 5), block=40)
+    sheet, scale, _ = px.make_sprite([raw], (8, 8), palette=PAL)
+    assert abs(scale - 200 / 6) < 0.01
+    x0, y0, x1, y1 = opaque_box(sheet, 0, (8, 8))
+    assert (x1 - x0, y1 - y0) == (6, 6)
+
+
+def test_make_sprite_shared_box_keeps_frames_aligned(tmp_path):
+    a = block_on_magenta(tmp_path, 'a.png', PAL[2], at=(100, 100), cells=(4, 4))
+    b = block_on_magenta(tmp_path, 'b.png', PAL[2], at=(100, 60), cells=(4, 5))  # taller: arm raised
+    sheet, _, _ = px.make_sprite([a, b], (8, 8), scale='40', palette=PAL)
+    assert opaque_box(sheet, 0, (8, 8)) == (2, 4, 6, 8)
+    assert opaque_box(sheet, 1, (8, 8)) == (2, 3, 6, 8)
+
+
+def test_make_sprite_each_fits_frames_independently(tmp_path):
+    a = block_on_magenta(tmp_path, 'a.png', PAL[2], at=(10, 10), cells=(2, 2))
+    b = block_on_magenta(tmp_path, 'b.png', PAL[4], at=(200, 200), cells=(4, 4))
+    sheet, _, _ = px.make_sprite([a, b], (8, 8), scale='40', each=True, palette=PAL)
+    assert opaque_box(sheet, 0, (8, 8)) == (3, 6, 5, 8)
+    assert opaque_box(sheet, 1, (8, 8)) == (2, 4, 6, 8)
+
+
+def test_make_sprite_rejects_oversized(tmp_path):
+    raw = block_on_magenta(tmp_path, 'a.png', PAL[2])
+    with pytest.raises(SystemExit):
+        px.make_sprite([raw], (4, 4), scale='40', palette=PAL)
+
+
+def test_make_sprite_reports_hole(tmp_path):
+    grid = [[PAL[0]] * 6 for _ in range(6)]
+    for y in range(1, 3):
+        for x in range(1, 5):
+            grid[y][x] = px.CYAN
+    img = Image.new('RGB', (400, 400), px.MAGENTA)
+    img.paste(fake_pixel_art(grid, 40, jitter=0, noise=0), (80, 80))
+    raw = tmp_path / 'pot.png'
+    img.save(raw)
+    sheet, _, holes = px.make_sprite([raw], (8, 8), scale='40', hole=True, palette=PAL)
+    assert holes == [(2, 3, 6, 5)]  # 6x6 body bottom-centred at (1, 2)
+    assert sheet.getpixel((3, 3))[3] == 0
