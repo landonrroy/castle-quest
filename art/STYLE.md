@@ -29,6 +29,4 @@ as a style reference on every prompt after it has been approved.
   onto the magenta, cropping off any part of the subject.
 
 ## Palette
-Locked after the Kitchen background is approved: `assets/palette.png`
-(48 colors). `tools/pixelize.py` snaps every asset to it, so small color
-drift between Gemini images is fine.
+Locked after the Kitchen background is approved: `assets/palette.png` — 32 colors taken from the Kitchen background plus 16 fixed accent colors (`ACCENTS` in tools/pixelize.py) for greens, blues, yellows, fire, purple, pink, white and outline ink. `tools/pixelize.py` snaps every asset to it, so small color drift between Gemini images is fine.

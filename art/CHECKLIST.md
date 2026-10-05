@@ -4,9 +4,9 @@ Raw Gemini output goes in `art/raw/`. Commands run from the repo root.
 Previews (4×) are written to `art/preview/` for viewing.
 
 ## Gate 1: look + palette
-- [ ] `kitchen-bg.png` generated
-- [ ] palette extracted: `python tools/pixelize.py palette art/raw/kitchen-bg.png`
-- [ ] background: `python tools/pixelize.py bg art/raw/kitchen-bg.png assets/kitchen/bg.png --preview`
+- [x] `kitchen-bg.jpg` generated
+- [x] palette extracted: `python tools/pixelize.py palette art/raw/kitchen-bg.jpg --size 640x360`
+- [x] background: `python tools/pixelize.py bg art/raw/kitchen-bg.jpg assets/kitchen/bg.png --preview`
 - [ ] look + palette approved by the user (palette is locked after this)
 
 ## Sprites (after Gate 1)

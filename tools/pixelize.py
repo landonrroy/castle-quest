@@ -2,9 +2,10 @@
 """pixelize: turn AI "fake pixel art" into true pixel art for Castle Quest.
 
 Commands (run from the repo root):
-  palette RAW [--size 640x360] [--colors 48]
-      Extract the game palette from the approved background and write
-      assets/palette.png + js/palette.js. Run once; the palette is then locked.
+  palette RAW [--size 640x360] [--colors 32]
+      Extract N colors (default 32) from the approved background and add 16 fixed
+      accent colors, then write assets/palette.png + js/palette.js. Run once;
+      the palette is then locked.
   bg RAW OUT [--size 640x360] [--preview]
       Background: snap to the pixel grid and the palette.
   sprite OUT RAW [RAW ...] --cell WxH [--scale auto|N] [--each] [--hole] [--tol 90] [--preview]
@@ -24,6 +25,22 @@ PALETTE_JS = ROOT / 'js' / 'palette.js'
 PREVIEW_DIR = ROOT / 'art' / 'preview'
 MAGENTA = (255, 0, 255)
 CYAN = (0, 255, 255)
+
+# Accent ramps added to every palette, so characters and props keep colors
+# the background room may not contain (greens, blues, yellows, fire, purple, pink).
+ACCENTS = [
+    '#2f8a3a', '#3fb950', '#8fd16b',   # green
+    '#1f4f9a', '#2f7fe0', '#9cc0ff',   # blue
+    '#e0a300', '#ffd23f', '#fff1a8',   # yellow
+    '#ff6a1a', '#ff9a3c',              # fire orange
+    '#5b2a9a', '#9b5de5',              # purple
+    '#ff8fb0',                         # pink
+    '#ffffff', '#3a2a1a',              # white, outline ink
+]
+
+
+def hex_rgb(h):
+    return tuple(int(h[i:i + 2], 16) for i in (1, 3, 5))
 
 
 def parse_size(s):
@@ -239,7 +256,7 @@ def main(argv=None):
     p = sub.add_parser('palette')
     p.add_argument('raw')
     p.add_argument('--size', default='640x360')
-    p.add_argument('--colors', type=int, default=48)
+    p.add_argument('--colors', type=int, default=32)
     b = sub.add_parser('bg')
     b.add_argument('raw')
     b.add_argument('out')
@@ -257,7 +274,7 @@ def main(argv=None):
     a = ap.parse_args(argv)
 
     if a.cmd == 'palette':
-        pal = extract_palette(downsample(Image.open(a.raw), parse_size(a.size)), a.colors)
+        pal = list(dict.fromkeys(extract_palette(downsample(Image.open(a.raw), parse_size(a.size)), a.colors) + [hex_rgb(h) for h in ACCENTS]))
         write_palette(pal, PALETTE_PNG, PALETTE_JS)
         print(f'wrote {PALETTE_PNG} and {PALETTE_JS} ({len(pal)} colors)')
     elif a.cmd == 'bg':

@@ -216,3 +216,17 @@ def test_make_sprite_reports_hole(tmp_path):
     sheet, _, holes = px.make_sprite([raw], (8, 8), scale='40', hole=True, palette=PAL)
     assert holes == [(2, 3, 6, 5)]  # 6x6 body bottom-centred at (1, 2)
     assert sheet.getpixel((3, 3))[3] == 0
+
+
+def test_palette_command_adds_accents(tmp_path, monkeypatch):
+    raw = tmp_path / 'raw.png'
+    fake_pixel_art(rand_grid(16, 9, seed=7), 12).save(raw)
+    pal_png, pal_js = tmp_path / 'palette.png', tmp_path / 'palette.js'
+    monkeypatch.setattr(px, 'PALETTE_PNG', pal_png)
+    monkeypatch.setattr(px, 'PALETTE_JS', pal_js)
+    px.main(['palette', str(raw), '--size', '16x9', '--colors', '6'])
+    pal = px.load_palette(pal_png)
+    for hexc in px.ACCENTS:
+        rgb = tuple(int(hexc[i:i + 2], 16) for i in (1, 3, 5))
+        assert rgb in pal, hexc
+    assert len(pal) <= 6 + len(px.ACCENTS)
