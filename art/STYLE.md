@@ -1,7 +1,7 @@
 # Castle Quest — Pixel Art Style Guide
 
 Every Gemini prompt starts with the **style block** below. Attach the approved
-Kitchen background (`assets/kitchen/bg.png` preview, or `art/raw/kitchen-bg.png`)
+Kitchen background (`assets/kitchen/bg.png` preview, or `art/raw/kitchen-bg.jpg`)
 as a style reference on every prompt after it has been approved.
 
 ## Style block (paste at the start of every prompt)

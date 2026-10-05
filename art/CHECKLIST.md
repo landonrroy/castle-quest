@@ -12,16 +12,16 @@ Previews (4×) are written to `art/preview/` for viewing.
 ## Sprites (after Gate 1)
 | Done | Asset | Raw files (art/raw/) | Command |
 |---|---|---|---|
-| [x] | Pip | pip-0-idle, pip-1-breathe, pip-2-blink, pip-3-talk | `python tools/pixelize.py sprite assets/common/pip.png art/raw/pip-0-idle.png art/raw/pip-1-breathe.png art/raw/pip-2-blink.png art/raw/pip-3-talk.png --cell 84x84 --preview` |
-| [x] | Clementine | cc-0-idle … cc-7-yum (8) | `python tools/pixelize.py sprite assets/kitchen/clementine.png art/raw/cc-0-idle.png art/raw/cc-1-breathe.png art/raw/cc-2-blink.png art/raw/cc-3-talk.png art/raw/cc-4-wave-a.png art/raw/cc-5-wave-b.png art/raw/cc-6-taste.png art/raw/cc-7-yum.png --cell 90x200 --preview` |
-| [x] | Cat | cat-0-idle … cat-4-happy (5) | `python tools/pixelize.py sprite assets/kitchen/cat.png art/raw/cat-0-idle.png art/raw/cat-1-tail.png art/raw/cat-2-ears.png art/raw/cat-3-meow.png art/raw/cat-4-happy.png --cell 64x56 --preview` |
-| [x] | Bird | bird-0-idle … bird-4-wings-down (5) | `python tools/pixelize.py sprite assets/kitchen/bird.png art/raw/bird-0-idle.png art/raw/bird-1-peck.png art/raw/bird-2-wings-up.png art/raw/bird-3-wings-mid.png art/raw/bird-4-wings-down.png --cell 32x28 --preview` |
-| [x] | Fire | fire-0 … fire-3 | `python tools/pixelize.py sprite assets/kitchen/fire.png art/raw/fire-0.png art/raw/fire-1.png art/raw/fire-2.png art/raw/fire-3.png --cell 150x75 --preview` |
-| [x] | Pot | pot-0, pot-1-burp | `python tools/pixelize.py sprite assets/kitchen/pot.png art/raw/pot-0.png art/raw/pot-1-burp.png --cell 160x140 --hole --preview` |
-| [x] | Bubbles | bubble-0 … bubble-2 | `python tools/pixelize.py sprite assets/kitchen/bubble.png art/raw/bubble-0.png art/raw/bubble-1.png art/raw/bubble-2.png --cell 16x16 --each --preview` |
-| [x] | Pans | pan-0-frying, pan-1-saucepan, pan-2-ladle | `python tools/pixelize.py sprite assets/kitchen/pans.png art/raw/pan-0-frying.png art/raw/pan-1-saucepan.png art/raw/pan-2-ladle.png --cell 36x46 --each --preview` |
-| [x] | Basket | basket (used twice) | `python tools/pixelize.py sprite assets/kitchen/basket.png art/raw/basket.png art/raw/basket.png --cell 60x28 --preview`, then cut frame 1 (Task 6) |
-| [x] | Ingredients | ing-carrot, ing-tomato, ing-mushroom, ing-onion, ing-potato, ing-peapod, ing-apple, ing-cheese | `python tools/pixelize.py sprite assets/kitchen/ingredients.png art/raw/ing-carrot.png art/raw/ing-tomato.png art/raw/ing-mushroom.png art/raw/ing-onion.png art/raw/ing-potato.png art/raw/ing-peapod.png art/raw/ing-apple.png art/raw/ing-cheese.png --cell 48x48 --each --preview` |
+| [x] | Pip | pip-0-idle, pip-1-breathe, pip-2-blink, pip-3-talk (.png, from pip-pair.jpg) | `python tools/pixelize.py sprite assets/common/pip.png art/raw/pip-0-idle.png art/raw/pip-1-breathe.png art/raw/pip-2-blink.png art/raw/pip-3-talk.png --cell 84x84 --preview` |
+| [x] | Clementine | cc-0-idle, cc-2-blink … cc-7-yum (7 .jpg; frame 1 synthesized) | `python tools/pixelize.py sprite assets/kitchen/clementine.png art/raw/cc-0-idle.jpg art/raw/cc-0-idle.jpg art/raw/cc-2-blink.jpg art/raw/cc-3-talk.jpg art/raw/cc-4-wave-a.jpg art/raw/cc-5-wave-b.jpg art/raw/cc-6-taste.jpg art/raw/cc-7-yum.jpg --cell 120x200 --tol 120 --preview` |
+| [x] | Cat | cat-0-idle, cat-1-doze, cat-2-ears, cat-3-meow, cat-4-happy (.jpg) | `python tools/pixelize.py sprite assets/kitchen/cat.png art/raw/cat-0-idle.jpg art/raw/cat-1-doze.jpg art/raw/cat-2-ears.jpg art/raw/cat-3-meow.jpg art/raw/cat-4-happy.jpg --cell 64x56 --tol 120 --preview` |
+| [x] | Bird | bird-0-idle … bird-4-wings-down (5 .jpg) | `python tools/pixelize.py sprite assets/kitchen/bird.png art/raw/bird-0-idle.jpg art/raw/bird-1-peck.jpg art/raw/bird-2-wings-up.jpg art/raw/bird-3-wings-mid.jpg art/raw/bird-4-wings-down.jpg --cell 40x34 --tol 120 --preview` |
+| [x] | Fire | fire-0, fire-1, fire-2 (.jpg; fire-1 used twice) | `python tools/pixelize.py sprite assets/kitchen/fire.png art/raw/fire-0.jpg art/raw/fire-1.jpg art/raw/fire-2.jpg art/raw/fire-1.jpg --cell 150x75 --tol 120 --preview` |
+| [x] | Pot | pot-0, pot-1-burp (.jpg) | `python tools/pixelize.py sprite assets/kitchen/pot.png art/raw/pot-0.jpg art/raw/pot-1-burp.jpg --cell 160x140 --hole --tol 120 --preview` |
+| [x] | Bubbles | bubble-0 … bubble-2 (.png, from bubbles-basket-sheet.jpg) | `python tools/pixelize.py sprite assets/kitchen/bubble.png art/raw/bubble-0.png art/raw/bubble-1.png art/raw/bubble-2.png --cell 16x16 --each --scale 33 --preview` |
+| [x] | Pans | pan-0-frying, pan-1-saucepan, pan-2-ladle (.png, from pans-sheet.jpg) | `python tools/pixelize.py sprite assets/kitchen/pans.png art/raw/pan-0-frying.png art/raw/pan-1-saucepan.png art/raw/pan-2-ladle.png --cell 36x46 --each --preview` |
+| [x] | Basket | basket.png (used twice, from bubbles-basket-sheet.jpg) | `python tools/pixelize.py sprite assets/kitchen/basket.png art/raw/basket.png art/raw/basket.png --cell 60x36 --preview`, then keep rows >= 19 of frame 1 (front wall); ` |
+| [x] | Ingredients | ing-carrot, ing-tomato, ing-mushroom, ing-onion, ing-potato, ing-peapod, ing-apple, ing-cheese (.png, from ingredients-sheet.jpg) | `python tools/pixelize.py sprite assets/kitchen/ingredients.png art/raw/ing-carrot.png art/raw/ing-tomato.png art/raw/ing-mushroom.png art/raw/ing-onion.png art/raw/ing-potato.png art/raw/ing-peapod.png art/raw/ing-apple.png art/raw/ing-cheese.png --cell 48x48 --each --preview` |
 
 Troubleshooting: a pink halo around a sprite means the magenta wasn't pure.
 Re-run with `--tol 120`. "bigger than cell" means the frames are framed
@@ -42,6 +42,8 @@ produced the committed assets differ from the table in these ways:
 - **Clementine**: `--cell 120x200` (not 90x200; the taste spoon and wave
   widen the shared box). Frame 1 (breathe) is frame 0 with the upper body
   shifted down 1 px, not a Gemini image.
+- **Cat**: frame 1 is "doze" (eyes closed), replacing the planned tail-flick
+  frame, which came out with two tails.
 - **Bird**: `--cell 40x34` (32x28 was illegible).
 - **Basket**: `--cell 60x36`; frame 1 keeps rows ≥ 19 (front wall).
 - **Fire**: frames are fire-0, 1, 2, 1 (fire-3 had a tan fill).

@@ -10,7 +10,7 @@ palette/look approval before doing the rest.
 
 ---
 
-## 1. Kitchen background — `kitchen-bg.png` (16:9 landscape)
+## 1. Kitchen background — `kitchen-bg.jpg` (16:9 landscape)
 Attach: `art/ref/kitchen-layout.png`, `art/ref/kitchen-full.png`
 
 ```
