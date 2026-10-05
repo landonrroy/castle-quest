@@ -196,3 +196,9 @@ html, body {
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
 }
+
+/* ---------- Pixel art ---------- */
+.sprite { display: block; background-repeat: no-repeat; image-rendering: pixelated; }
+.px { display: block; image-rendering: pixelated; user-select: none; -webkit-user-drag: none; }
+/* Feedback on pixel art jumps between poses instead of gliding. */
+.pixel.wiggle, .pixel.bounce { animation-timing-function: steps(1, end); }

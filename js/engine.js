@@ -88,6 +88,91 @@
   }
   Castle.util = { el, svg, rand, pick, shuffle };
 
+  /* ------------------------------------------------------------------
+     Pixel art: sprite sheets (one row of equal frames) and still images,
+     drawn at 2x so 1 art pixel = 2 stage pixels. Frames are swapped, never
+     smoothly scaled, so the pixels stay crisp.
+     ------------------------------------------------------------------ */
+  const PX = 2;
+  function makeSprite(src, o, track) {
+    o = o || {};
+    const fw = o.frame[0], fh = o.frame[1], sc = o.scale || PX;
+    const anims = {};
+    let maxF = 0;
+    Object.keys(o.anims || {}).forEach(k => {
+      const a = o.anims[k];
+      anims[k] = Array.isArray(a) ? { frames: a, fps: o.fps || 6 } : { frames: a.frames, fps: a.fps || o.fps || 6 };
+      maxF = Math.max(maxF, ...anims[k].frames);
+    });
+    const cols = o.cols || maxF + 1;
+    const node = el('div', { class: 'sprite' + (o.class ? ' ' + o.class : '') });
+    Object.assign(node.style, {
+      width: fw * sc + 'px', height: fh * sc + 'px',
+      backgroundImage: `url("${src}")`,
+      backgroundSize: `${cols * fw * sc}px ${fh * sc}px`,
+    });
+    if (o.x != null) Object.assign(node.style, { position: 'absolute', left: o.x + 'px', top: o.y + 'px' });
+
+    let timer = null, blinkTimer = null, current = null, done = null, then = null;
+    function show(f) { s.shown = f; node.style.backgroundPosition = `${-f * fw * sc}px 0px`; }
+    function halt() {
+      if (timer) { clearInterval(timer); timer = null; }
+      then = null;
+      if (done) { const d = done; done = null; d(); }
+    }
+    const s = {
+      el: node,
+      shown: 0,
+      get anim() { return current; },
+      frame(f) { halt(); current = null; show(f); return s; },
+      play(name, po) {
+        po = po || {};
+        const a = anims[name];
+        if (!a) { console.warn('sprite: no animation', name); return Promise.resolve(); }
+        if (name === current && timer && !po.once && !po.fps) return Promise.resolve();
+        halt();
+        current = name;
+        let i = 0;
+        show(a.frames[0]);
+        if (!po.once && a.frames.length < 2) return Promise.resolve();
+        const p = po.once ? new Promise(r => { done = r; }) : Promise.resolve();
+        then = po.once ? po.then || null : null;
+        timer = setInterval(() => {
+          i++;
+          if (i < a.frames.length) { show(a.frames[i]); return; }
+          if (!po.once) { i = 0; show(a.frames[0]); return; }
+          const next = then;
+          halt();
+          if (next) s.play(next);
+        }, 1000 / (po.fps || a.fps));
+        return p;
+      },
+      stop() { halt(); },
+      destroy() { halt(); clearTimeout(blinkTimer); },
+    };
+    function blinkLater() {
+      blinkTimer = setTimeout(() => {
+        if (current === 'idle') s.play(o.blink, { once: true, then: 'idle' });
+        blinkLater();
+      }, 3000 + Math.random() * 3000);
+    }
+    if (track) track(s.destroy);
+    if (anims.idle) s.play('idle'); else show(0);
+    if (o.blink && anims[o.blink]) blinkLater();
+    return s;
+  }
+  function makeImg(src, o) {
+    o = o || {};
+    const sc = o.scale || PX;
+    const node = el('img', { src, alt: '', draggable: 'false', class: 'px' + (o.class ? ' ' + o.class : '') });
+    Object.assign(node.style, { width: o.w * sc + 'px', height: o.h * sc + 'px' });
+    if (o.x != null) Object.assign(node.style, { position: 'absolute', left: o.x + 'px', top: o.y + 'px' });
+    node.addEventListener('error', () => { node.style.visibility = 'hidden'; });
+    return node;
+  }
+  Castle.sprite = (src, o) => makeSprite(src, o, null);
+  Castle.img = makeImg;
+
   function jewelSVG(kind, size) {
     const j = JEWELS[kind] || JEWELS.ruby;
     size = size || 60;
@@ -650,6 +735,8 @@
       sparkleAt(node) { if (ctx.alive) { const r = stageRect(node); sparkles(r.cx, r.cy, 22); } },
       toStage, stageRect, hitTest,
       draggable(node, opts) { return makeDraggable(node, opts, track); },
+      sprite(src, o) { return makeSprite(src, o, track); },
+      img: makeImg,
       praise() {
         return api.say(pick(['Great job!', 'Hooray!', 'You did it!', 'Wonderful!', 'Super!', 'Way to go!', 'Fantastic!', 'Brilliant!']));
       },
