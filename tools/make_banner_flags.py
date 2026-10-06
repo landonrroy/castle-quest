@@ -54,12 +54,11 @@ def pennant(fill, dark, slot=False):
                 if (i // 3) % 2 == 0:
                     t = i / n
                     d.rectangle((round(x0 + (x1 - x0) * t), round(y0 + (y1 - y0) * t)) * 2, fill=INK)
-        q = ['.###.', '#...#', '....#', '...#.', '..#..', '.....', '..#..']  # pixel "?"
+        q = ['.###.', '##.##', '...##', '..##.', '..#..', '.....', '..#..']  # pixel "?"
         for y, row in enumerate(q):
             for x, ch in enumerate(row):
                 if ch == '#':
-                    d.rectangle((15 + x * 4, 16 + y * 4, 18 + x * 4, 19 + y * 4), fill=WHITE)
-                    d.rectangle((15 + x * 4, 19 + y * 4, 18 + x * 4, 19 + y * 4), fill=INK)
+                    d.rectangle((15 + x * 4, 16 + y * 4, 18 + x * 4, 19 + y * 4), fill=INK)
     else:
         d.polygon(flag_poly(), fill=INK)
         d.polygon(flag_poly(2), fill=rgba(fill))
