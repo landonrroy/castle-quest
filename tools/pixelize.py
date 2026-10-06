@@ -44,6 +44,9 @@ ACCENTS = [
     '#2a1f4a', '#4a3a7a', '#c8b8f0',   # cave purples
     '#e0784e', '#bd5338', '#a24230',   # terracotta
     '#82b451', '#44743e',              # leaf greens
+    '#be1a2c', '#8a0f24', '#db5f66',   # ruby reds
+    '#f2af2d', '#e08827',              # crown golds
+    '#90cfff', '#a6daff',              # sky mid-tones
 ]
 
 
