@@ -51,3 +51,20 @@ produced the committed assets differ from the table in these ways:
 - **Pot and pans**: magenta trapped inside handle loops snapped to purple;
   those purple pixels were cleared after pixelizing. Pot soup hole:
   x=32 y=29 w=96 h=37 (art px).
+
+# Music Tower (bells) — as built (2026-10-05)
+Raws in `art/raw/`, references `art/ref/bells-*.png`, `bram.png`, `pigeon.png`, `vane.png`.
+
+| Asset | Raws | How |
+|---|---|---|
+| `assets/bells/bg.png` | `bells-bg.jpg` (Gemini edit: white clouds, yellow sun, clear sky) | `pixelize.py bg` (now despeckles) |
+| `assets/bells/bells.png` | `bells-row-0-idle.jpg`, `-1-blink.jpg`, `-2-sing.jpg` (one row of 5 bells each, split at the gaps → `bell-<C|D|E|G|A>-<0|1|2>.png`) | per colour `make_sprite` 3 frames, cell 75x88, one shared scale; 15 cells in C D E G A order; trapped-magenta purple cleared |
+| `assets/bells/bram.png` | `bram-0-idle`, `-2-blink`, `-3-talk`, `-4-conduct-a`, `-5-conduct-b` | cell 92x122; frame 1 = breathe (frame 0 upper body shifted down 1 px); purple + detached fleck cleared |
+| `assets/bells/pigeon.png` | `pigeon-0-idle`, `-1-peck`, `-2-wings-up`, `-3-wings-down` | cell 46x40, `--tol 100` (keep the purple neck); second pigeon mirrored in CSS |
+| `assets/bells/cloud.png` | `cloud-vane-sheet.jpg` left half → `cloud.png` | cell 100x60 |
+| `assets/bells/vane.png` | same sheet right half → `vane.png` | cell 50x62; 4 spin frames built in code from the top 30 rows (side, edge-on, mirrored, edge-on mirrored) |
+
+Notes: the first bells row Gemini returned had part of the reference
+screenshot blended into it; it was discarded and the eyes-open row was made by
+editing the clean blink row. Re-attach the base image for every pose edit —
+chained edits drift (bird pecking head, two-tailed cat).
