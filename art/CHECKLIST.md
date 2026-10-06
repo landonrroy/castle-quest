@@ -68,3 +68,22 @@ Notes: the first bells row Gemini returned had part of the reference
 screenshot blended into it; it was discarded and the eyes-open row was made by
 editing the clean blink row. Re-attach the base image for every pose edit —
 chained edits drift (bird pecking head, two-tailed cat).
+
+# Royal Garden — as built (2026-10-06)
+Raws in `art/raw/`, references `art/ref/garden-*.png`, `gus.png`. Sheets were
+split into cells (background turned pure magenta, stray blobs from
+neighbouring cells dropped) before `pixelize.py sprite`.
+
+| Asset | Raws | How |
+|---|---|---|
+| `assets/garden/bg.png` | `garden-bg.jpg` | `pixelize.py bg` |
+| `assets/garden/gus.png` | `gus-0-idle`, `-2-blink`, `-3-talk` | cell 125x165, `--tol 110`; face rows 24–90 of blink/talk composited onto frame 0; frame 1 = breathe (upper body above row 90 shifted down 1 px) |
+| `assets/garden/pics.png` | `garden-pics-sheet.jpg` (6x4 grid; row 4 was a repeat of row 3 and is unused) | 18 cells of 56x56, `--each` |
+| `pot`, `bunny`, `bush`, `fountain`, `sunflower` (x2), `frog` (x2) | `garden-props-a.jpg` (4x2 grid) | cells 90x83, 40x53, 58x45, 95x105, 55x115, 70x55; dark magenta fringe turned to ink; fountain's stray cave purples remapped to stone greys |
+| `packets` (x6), `flowers` (x6), `bfly` (x4) | `garden-props-b.jpg` (6x3 grid; ladybug and stone unused) | cells 60x75, 70x85 (frame 0 = sprout), 32x28 |
+
+Palette: added terracotta (`#e0784e #bd5338 #a24230`) and leaf greens
+(`#82b451 #44743e`) — the pot and lily pads speckled without them.
+Gemini's first picture sheet came back on a pale pink background, not
+magenta; only treat pink as background when the sheet really is pink, or
+hot-pink art (pink packet, pink flower) gets keyed.
