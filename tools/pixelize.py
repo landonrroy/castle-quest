@@ -325,6 +325,7 @@ def main(argv=None):
         save(img.convert('RGB'), a.out, a.preview)
     elif a.cmd == 'sprite':
         sheet, sc, holes = make_sprite(a.raws, parse_size(a.cell), a.scale, a.hole, a.each, a.tol, require_palette())
+        sheet = despeckle(sheet)
         save(sheet, a.out, a.preview)
         print(f'scale {sc:.2f} source px per art px')
         for i, hb in enumerate(holes):
