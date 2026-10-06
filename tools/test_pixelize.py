@@ -246,3 +246,14 @@ def test_palette_command_adds_accents(tmp_path, monkeypatch):
         rgb = tuple(int(hexc[i:i + 2], 16) for i in (1, 3, 5))
         assert rgb in pal, hexc
     assert len(pal) <= 6 + len(px.ACCENTS)
+
+
+def test_despeckle_removes_isolated_near_colors_but_keeps_outlines():
+    sky, sky2, ink = (79, 159, 232), (124, 196, 255), (58, 42, 26)
+    img = Image.new('RGBA', (7, 7), (*sky, 255))
+    img.putpixel((3, 3), (*sky2, 255))   # lone speckle of a close colour
+    for y in range(7):
+        img.putpixel((5, y), (*ink, 255))  # 1 px dark outline column
+    out = px.despeckle(img)
+    assert out.getpixel((3, 3)) == (*sky, 255)
+    assert all(out.getpixel((5, y)) == (*ink, 255) for y in range(7))

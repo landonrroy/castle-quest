@@ -37,6 +37,10 @@ ACCENTS = [
     '#5b2a9a', '#9b5de5',              # purple
     '#ff8fb0',                         # pink
     '#ffffff', '#3a2a1a',              # white, outline ink
+    '#4f9fe8', '#7cc4ff', '#b8e2ff',   # sky
+    '#e8eef4',                         # cloud white
+    '#e8423f',                         # bright red
+    '#c9f7a8',                         # pale green
 ]
 
 
@@ -240,6 +244,29 @@ def require_palette():
     return load_palette(PALETTE_PNG)
 
 
+def despeckle(img, max_dist=70, passes=2):
+    """Remove lone pixels that sit between two close palette colours (a sky
+    gradient snapped to two blues turns into noise). A pixel takes the colour
+    shared by at least 6 of its 8 neighbours when that colour is within
+    max_dist of its own, so dark outlines and real detail survive."""
+    img = img.convert('RGBA')
+    w, h = img.size
+    m2 = max_dist * max_dist
+    for _ in range(passes):
+        src = img.copy().load()
+        p = img.load()
+        for y in range(1, h - 1):
+            for x in range(1, w - 1):
+                c = src[x, y]
+                if c[3] == 0:
+                    continue
+                votes = Counter(src[x + dx, y + dy] for dx in (-1, 0, 1) for dy in (-1, 0, 1) if dx or dy)
+                best, n = votes.most_common(1)[0]
+                if n >= 6 and best != c and best[3] and dist2(best, c) <= m2:
+                    p[x, y] = best
+    return img
+
+
 def save(img, out, preview):
     out = Path(out)
     out.parent.mkdir(parents=True, exist_ok=True)
@@ -294,7 +321,7 @@ def main(argv=None):
         write_palette(pal, PALETTE_PNG, PALETTE_JS)
         print(f'wrote {PALETTE_PNG} and {PALETTE_JS} ({len(pal)} colors)')
     elif a.cmd == 'bg':
-        img = snap(downsample(Image.open(a.raw), parse_size(a.size)), require_palette())
+        img = despeckle(snap(downsample(Image.open(a.raw), parse_size(a.size)), require_palette()))
         save(img.convert('RGB'), a.out, a.preview)
     elif a.cmd == 'sprite':
         sheet, sc, holes = make_sprite(a.raws, parse_size(a.cell), a.scale, a.hole, a.each, a.tol, require_palette())
