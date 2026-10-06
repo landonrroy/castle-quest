@@ -87,3 +87,23 @@ Palette: added terracotta (`#e0784e #bd5338 #a24230`) and leaf greens
 Gemini's first picture sheet came back on a pale pink background, not
 magenta; only treat pink as background when the sheet really is pink, or
 hot-pink art (pink packet, pink flower) gets keyed.
+
+# Castle scenes (title, map, throne) — as built (2026-10-06)
+References `art/ref/map-full.png`, `title-layout.png`, `throne-full.png`,
+`throne-layout.png`, `king.png`, `crown.png` (headless screenshots of the old
+SVG scenes with the HUD hidden). Style reference for backgrounds:
+`art/raw/garden-bg.jpg`; for the King: `gus-0-idle.jpg`.
+
+| Asset | Raws | How |
+|---|---|---|
+| `assets/castle/map-bg.png`, `title-bg.png`, `throne-bg.png` | `map-bg.jpg`, `title-bg.jpg`, `throne-bg.jpg` | `pixelize.py bg` |
+| `assets/castle/spot-*.png` | cut from `map-bg.png` | `python tools/make_map_spots.py` (polygons must match `SPOT_POLYS` in js/scenes.js) |
+| `assets/castle/king.png` | `king-0-idle`, `-2-blink`, `-3-talk` | cell 150x190; face rows 26–84 (blink) / 26–90 (talk) composited onto frame 0; frame 1 = breathe (rows above 130 shifted down 1 px) |
+| `assets/castle/crown.png`, `jewels.png` | `crown-sheet.jpg` (crown on top, six gems below) | crown cell 120x85; jewels 32x32 reordered to JEWEL_ORDER (the sheet has emerald before amethyst); dark-red fringe on the crown and non-ruby gems turned to ink |
+
+Crown socket centres (240x170 box): x 42, 74, 106, 140, 172, 204 at y 138.
+Palette: added ruby reds (`#be1a2c #8a0f24 #db5f66`), crown golds
+(`#f2af2d #e08827`) and sky mid-tones (`#90cfff #a6daff`) — without them the
+ruby went brown, the crown speckled and the title sky showed a lavender band.
+A Gemini chat's image can stop loading later (the first map); download each
+image right after it is generated.
