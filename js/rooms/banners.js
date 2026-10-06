@@ -77,7 +77,7 @@
   /* flag art */
   .scene-banners .bh-flagart { position: relative; width: 100%; height: 100%; }
   .scene-banners .bh-pen { position: absolute; left: 0; top: 0; width: 100% !important; height: 100% !important; background-size: 800% 100% !important; }
-  .scene-banners .bh-sym { position: absolute; width: 25% !important; height: 17.857% !important; background-size: 3600% 100% !important; transform: translate(-50%, -50%); }
+  .scene-banners .bh-sym { position: absolute; width: 50% !important; height: 35.714% !important; background-size: 3600% 100% !important; transform: translate(-50%, -50%); }
 
   /* chandelier */
   .scene-banners .bh-chand { left: 520px; top: 0; width: 240px; height: 170px; }
