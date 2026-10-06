@@ -41,6 +41,7 @@ ACCENTS = [
     '#e8eef4',                         # cloud white
     '#e8423f',                         # bright red
     '#c9f7a8',                         # pale green
+    '#2a1f4a', '#4a3a7a', '#c8b8f0',   # cave purples
 ]
 
 
