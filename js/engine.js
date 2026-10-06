@@ -179,18 +179,10 @@
   Castle.img = makeImg;
 
   function jewelSVG(kind, size) {
-    const j = JEWELS[kind] || JEWELS.ruby;
+    let idx = JEWEL_ORDER.indexOf(kind);
+    if (idx < 0) idx = 0;
     size = size || 60;
-    return `<svg class="jewel-svg" viewBox="0 0 100 100" width="${size}" height="${size}">
-      <polygon points="26,14 74,14 95,40 50,92 5,40" fill="${j.color}" stroke="#3a2a1a" stroke-width="5" stroke-linejoin="round"/>
-      <polygon points="26,14 40,40 5,40" fill="${j.light}" opacity=".85"/>
-      <polygon points="74,14 60,40 95,40" fill="${j.dark}" opacity=".45"/>
-      <polygon points="40,40 60,40 50,92" fill="${j.light}" opacity=".35"/>
-      <polygon points="60,40 95,40 50,92" fill="${j.dark}" opacity=".35"/>
-      <polyline points="5,40 95,40" fill="none" stroke="#3a2a1a" stroke-width="3"/>
-      <polyline points="26,14 40,40 50,14 60,40 74,14" fill="none" stroke="#3a2a1a" stroke-width="2.5" stroke-linejoin="round"/>
-      <circle cx="30" cy="27" r="5" fill="#fff" opacity=".9"/>
-    </svg>`;
+    return `<span class="jewel-px" style="width:${size}px;height:${size}px;background-position:${idx * 20}% 0"></span>`;
   }
   Castle.jewelSVG = jewelSVG;
 
