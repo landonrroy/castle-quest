@@ -46,7 +46,7 @@ def pennant(fill, dark, slot=False):
     im = Image.new('RGBA', (FW, FH), (0, 0, 0, 0))
     d = ImageDraw.Draw(im)
     if slot:
-        d.polygon(flag_poly(), fill=(255, 255, 255, 115))
+        d.polygon(flag_poly(), fill=(255, 250, 240, 215))
         pts = flag_poly() + [flag_poly()[0]]
         for (x0, y0), (x1, y1) in zip(pts, pts[1:]):  # dashed outline
             n = max(1, int(math.hypot(x1 - x0, y1 - y0)))
